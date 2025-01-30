@@ -108,6 +108,44 @@ router.get('/:id/logs', async (req, res) => {
   }
 });
 
+// Delete a workout
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const workoutId = parseInt(id);
+
+    // Check if workout exists and belongs to user
+    const workout = await prisma.workout.findFirst({
+      where: {
+        id: workoutId,
+        userId: req.user!.id
+      }
+    });
+
+    if (!workout) {
+      return res.status(404).json({ error: 'Workout not found' });
+    }
+
+    // Delete the workout and all related data
+    await prisma.$transaction([
+      prisma.workoutLog.deleteMany({
+        where: { workoutId }
+      }),
+      prisma.exercise.deleteMany({
+        where: { workoutId }
+      }),
+      prisma.workout.delete({
+        where: { id: workoutId }
+      })
+    ]);
+
+    res.status(200).json({ message: 'Workout deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting workout:', error);
+    res.status(500).json({ error: 'Failed to delete workout' });
+  }
+});
+
 // Get workouts for a specific week
 router.get('/week', async (req, res) => {
   try {
