@@ -32,6 +32,7 @@ model Exercise {
 model Workout {
   id        Int       @id @default(autoincrement())
   name      String
+  category  String    // 'Push', 'Pull', 'Legs', 'Upper', 'Lower'
   userId    Int
   user      User      @relation(fields: [userId], references: [id])
   exercises Exercise[]
